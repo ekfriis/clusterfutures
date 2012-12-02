@@ -84,17 +84,17 @@ def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
     return submit_text(desc)
 
 
-def submit_script(script, options=None):
+def submit_script(script, suffix='sh', log=LOG_FILE, options=None):
     """Like ``submit`` but takes the text of an executable script that
     should be used instead of a filename. Returns the cluster ID along
     with the name of the temporary script file executed. (This should
     probably be removed once the job completes.)
     """
-    filename = 'condorpy.jobscript.%s'
+    filename = 'condorpy.jobscript.%s' % suffix
     with open(filename, 'w') as f:
         f.write(script)
     os.chmod(filename, 0o755)
-    return submit(filename, options=options), filename
+    return submit(filename, log=log, options=options), filename
 
 
 def wait(jobid, log=LOG_FILE):
@@ -172,7 +172,25 @@ class WaitThread(threading.Thread):
                 time.sleep(self.interval)
 
 if __name__ == '__main__':
-    jid, jfn = submit_script("#!/bin/sh\necho hey there\n", getenv='True')
+    #jid, jfn = submit_script("#!/bin/sh\necho hey there\n", getenv='True')
+    options = {
+        'getenv': 'True',
+        'Requirements': 'TARGET.HasAFS_OSG && '
+        'TARGET.UWCMS_CVMFS_Exists &&'
+        '(IsExpressSlot =?= True || IsFastSlot =?= True)',
+        '+IsExpressQueueJob': 'True',
+    }
+    jid, jfn = submit_script(
+        '''#!/bin/sh
+        which python
+        echo $LD_LIBRARY_PATH
+        echo "wtf"
+        echo $LD_LIBRARY_PATH | cut -d ":" -f 1
+        echo "wtf"
+        echo $LD_LIBRARY_PATH | cut -d ":" -f 1 | xargs ls -l
+        python -m cfut.remote YEZoSrve3ibyHUqoH7Lumn0fV3tqkFwW
+        ''', options=options)
+        #getenv='True', )
     try:
         print "running job %i - %s" % (jid, jfn)
         stdout, stderr = getoutput(jid)
