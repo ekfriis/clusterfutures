@@ -55,7 +55,8 @@ def submit_text(job):
 
 def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
            outfile = OUTFILE_FMT % "$(Cluster)",
-           errfile = ERRFILE_FMT % "$(Cluster)"):
+           errfile = ERRFILE_FMT % "$(Cluster)",
+           **kwargs):
     """Starts a Condor job based on specified parameters. A job
     description is generated. Returns the cluster ID of the new job.
     """
@@ -68,6 +69,9 @@ def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
     ]
     if arguments:
         descparts.append("Arguments = %s" % arguments)
+    for key, value in kwargs.iteritems():
+        descparts.append("%s = %s" % (key, value))
+
     descparts.append("Queue")
 
     desc = "\n".join(descparts)
@@ -157,9 +161,9 @@ class WaitThread(threading.Thread):
                 time.sleep(self.interval)
 
 if __name__ == '__main__':
-    jid, jfn = submit_script("#!/bin/sh\necho hey there")
+    jid, jfn = submit_script("#!/bin/sh\necho hey there\n", getenv='True')
     try:
-        print "running job %i" % jid
+        print "running job %i - %s" % (jid, jfn)
         stdout, stderr = getoutput(jid)
         print "job done"
         print stdout

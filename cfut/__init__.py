@@ -162,14 +162,23 @@ class SlurmExecutor(ClusterExecutor):
 
 
 class CondorExecutor(ClusterExecutor):
-    """Futures executor for executing jobs on a Condor cluster."""
-    def __init__(self, debug=False):
+    """Futures executor for executing jobs on a Condor cluster.
+
+    kwargs are key = value pairs that will be added to the JDL passed to
+    condor_submit.  Value should be passed as a string.  For example, to
+    specify that the condor jobs should inherit the current environment,
+    one would specify::
+
+        exc = CondorExecutor(getenv="True")
+    """
+    def __init__(self, debug=False, **kwargs):
         super(CondorExecutor, self).__init__(debug)
+        self.job_options = kwargs
         self.logfile = LOGFILE_FMT % random_string()
 
     def _start(self, workerid):
         return condor.submit(sys.executable, '-m cfut.remote %s' % workerid,
-                             log=self.logfile)
+                             log=self.logfile, **self.job_options)
 
     def _cleanup(self, jobid):
         os.unlink(condor.OUTFILE_FMT % str(jobid))
