@@ -2,11 +2,15 @@ import cfut
 import concurrent.futures
 import subprocess
 
+
 # "Worker" functions.
 def square(n):
     return n * n
+
+
 def hostinfo():
     return subprocess.check_output('hostname; uname -a', shell=True)
+
 
 def example_1():
     """Square some numbers on remote hosts!
@@ -16,6 +20,7 @@ def example_1():
         for future in concurrent.futures.as_completed(futures):
             print future.result()
 
+
 def example_2():
     """Get host identifying information about the servers running
     our jobs.
@@ -24,6 +29,7 @@ def example_2():
         futures = [executor.submit(hostinfo) for n in range(5)]
         for future in concurrent.futures.as_completed(futures):
             print future.result().strip()
+
 
 def example_3():
     """Demonstrates the use of the map() convenience function.
