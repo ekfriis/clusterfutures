@@ -10,6 +10,7 @@ LOG_FILE = "condorpy.log"
 OUTFILE_FMT = "condorpy.stdout.%s.log"
 ERRFILE_FMT = "condorpy.stderr.%s.log"
 
+
 def call(command, stdin=None):
     """Invokes a shell command as a subprocess, optionally with some
     data sent to the standard input. Returns the standard output data,
@@ -24,6 +25,7 @@ def call(command, stdin=None):
     stdout, stderr = proc.communicate(stdin)
     return stdout, stderr, proc.returncode
 
+
 class CommandError(Exception):
     """Raised when a shell command exits abnormally."""
     def __init__(self, command, code, stderr):
@@ -36,6 +38,7 @@ class CommandError(Exception):
                                                  self.code,
                                                  repr(self.stderr))
 
+
 def chcall(command, stdin=None):
     """Like ``call`` but raises an exception when the return code is
     nonzero. Only returns the stdout and stderr data.
@@ -45,6 +48,7 @@ def chcall(command, stdin=None):
         raise CommandError(command, code, stderr)
     return stdout, stderr
 
+
 def submit_text(job):
     """Submits a Condor job represented as a job file string. Returns
     the cluster ID of the submitted job.
@@ -53,9 +57,10 @@ def submit_text(job):
     jobid = re.search(r'Proc (\d+)\.0', out).group(1)
     return int(jobid)
 
+
 def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
-           outfile = OUTFILE_FMT % "$(Cluster)",
-           errfile = ERRFILE_FMT % "$(Cluster)",
+           outfile=OUTFILE_FMT % "$(Cluster)",
+           errfile=ERRFILE_FMT % "$(Cluster)",
            **kwargs):
     """Starts a Condor job based on specified parameters. A job
     description is generated. Returns the cluster ID of the new job.
@@ -77,6 +82,7 @@ def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
     desc = "\n".join(descparts)
     return submit_text(desc)
 
+
 def submit_script(script, **kwargs):
     """Like ``submit`` but takes the text of an executable script that
     should be used instead of a filename. Returns the cluster ID along
@@ -89,9 +95,11 @@ def submit_script(script, **kwargs):
     os.chmod(filename, 0o755)
     return submit(filename, **kwargs), filename
 
+
 def wait(jobid, log=LOG_FILE):
     """Waits for a cluster (or specific job) to complete."""
     call("condor_wait %s %s" % (LOG_FILE, str(jobid)))
+
 
 def getoutput(jobid, log=LOG_FILE, cleanup=True):
     """Waits for a job to complete and then returns its standard output
@@ -112,6 +120,7 @@ def getoutput(jobid, log=LOG_FILE, cleanup=True):
         os.unlink(errfile)
 
     return stdout, stderr
+
 
 class WaitThread(threading.Thread):
     """A worker that polls Condor log files to observe when jobs
@@ -152,7 +161,8 @@ class WaitThread(threading.Thread):
                     with open(self.log) as f:
                         for line in f:
                             if 'Job terminated.' in line:
-                                clustid = re.search(r'\((\d+)\.', line).group(1)
+                                clustid = re.search(
+                                    r'\((\d+)\.', line).group(1)
                                 clustid = int(clustid)
                                 if clustid in self.waiting:
                                     self.callback(clustid)
