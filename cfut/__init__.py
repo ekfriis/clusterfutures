@@ -175,12 +175,26 @@ class CondorExecutor(ClusterExecutor):
         super(CondorExecutor, self).__init__(debug)
         self.job_options = options
         self.logfile = LOGFILE_FMT % random_string()
+        self.scripts_to_cleanup = {}
 
     def _start(self, workerid):
-        return condor.submit(sys.executable, '-m cfut.remote %s' % workerid,
-                             log=self.logfile, options=self.job_options)
+        #return condor.submit(sys.executable, '-m cfut.remote %s' % workerid,
+                             #log=self.logfile, options=self.job_options)
+        job_options = {
+            'transfer_input_files': INFILE_FMT % workerid
+        }
+        job_options.update(self.job_options)
+        jobid, submit_script = condor.submit_script(
+            '#!/bin/bash\n%s -m cfut.remote %s\n' % (sys.executable, workerid),
+            suffix=workerid, log=self.logfile, options=job_options)
+        # Keep track of the script we created so we can delete it when done.
+        self.scripts_to_cleanup[jobid] = submit_script
+        return jobid
 
     def _cleanup(self, jobid):
+        # Cleanup any shell scripts we created.
+        os.unlink(self.scripts_to_cleanup[jobid])
+        del self.scripts_to_cleanup[jobid]
         os.unlink(condor.OUTFILE_FMT % str(jobid))
         os.unlink(condor.ERRFILE_FMT % str(jobid))
 
