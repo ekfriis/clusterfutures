@@ -61,7 +61,7 @@ def submit_text(job):
 def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
            outfile=OUTFILE_FMT % "$(Cluster)",
            errfile=ERRFILE_FMT % "$(Cluster)",
-           **kwargs):
+           options=None):
     """Starts a Condor job based on specified parameters. A job
     description is generated. Returns the cluster ID of the new job.
     """
@@ -74,8 +74,9 @@ def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
     ]
     if arguments:
         descparts.append("Arguments = %s" % arguments)
-    for key, value in kwargs.iteritems():
-        descparts.append("%s = %s" % (key, value))
+    if options:
+        for key, value in options.iteritems():
+            descparts.append("%s = %s" % (key, value))
 
     descparts.append("Queue")
 
@@ -83,7 +84,7 @@ def submit(executable, arguments=None, universe="vanilla", log=LOG_FILE,
     return submit_text(desc)
 
 
-def submit_script(script, **kwargs):
+def submit_script(script, options=None):
     """Like ``submit`` but takes the text of an executable script that
     should be used instead of a filename. Returns the cluster ID along
     with the name of the temporary script file executed. (This should
@@ -93,7 +94,7 @@ def submit_script(script, **kwargs):
     with open(filename, 'w') as f:
         f.write(script)
     os.chmod(filename, 0o755)
-    return submit(filename, **kwargs), filename
+    return submit(filename, options=options), filename
 
 
 def wait(jobid, log=LOG_FILE):

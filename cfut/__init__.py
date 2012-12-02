@@ -171,14 +171,14 @@ class CondorExecutor(ClusterExecutor):
 
         exc = CondorExecutor(getenv="True")
     """
-    def __init__(self, debug=False, **kwargs):
+    def __init__(self, debug=False, options=None):
         super(CondorExecutor, self).__init__(debug)
-        self.job_options = kwargs
+        self.job_options = options
         self.logfile = LOGFILE_FMT % random_string()
 
     def _start(self, workerid):
         return condor.submit(sys.executable, '-m cfut.remote %s' % workerid,
-                             log=self.logfile, **self.job_options)
+                             log=self.logfile, options=self.job_options)
 
     def _cleanup(self, jobid):
         os.unlink(condor.OUTFILE_FMT % str(jobid))
