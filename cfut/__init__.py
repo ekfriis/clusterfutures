@@ -169,7 +169,7 @@ class CondorExecutor(ClusterExecutor):
     specify that the condor jobs should inherit the current environment,
     one would specify::
 
-        exc = CondorExecutor(getenv="True")
+        exc = CondorExecutor(options={'getenv': "True"})
     """
     def __init__(self, debug=False, options=None):
         super(CondorExecutor, self).__init__(debug)
