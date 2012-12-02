@@ -12,12 +12,14 @@ from cloud import serialization
 
 LOGFILE_FMT = 'cfut.log.%s.txt'
 
+
 class RemoteException(Exception):
     def __init__(self, error):
         self.error = error
 
     def __str__(self):
         return '\n' + self.error.strip()
+
 
 class FileWaitThread(threading.Thread):
     """A thread that polls the filesystem waiting for a list of files to
@@ -60,6 +62,7 @@ class FileWaitThread(threading.Thread):
                         del self.waiting[filename]
 
             time.sleep(self.interval)
+
 
 class ClusterExecutor(futures.Executor):
     """An abstract base class for executors that run jobs on clusters.
@@ -142,6 +145,7 @@ class ClusterExecutor(futures.Executor):
         self.wait_thread.stop()
         self.wait_thread.join()
 
+
 class SlurmExecutor(ClusterExecutor):
     """Futures executor for executing jobs on a Slurm cluster."""
     def _start(self, workerid):
@@ -155,6 +159,7 @@ class SlurmExecutor(ClusterExecutor):
             os.unlink(outf)
         except OSError:
             pass
+
 
 class CondorExecutor(ClusterExecutor):
     """Futures executor for executing jobs on a Condor cluster."""
@@ -174,6 +179,7 @@ class CondorExecutor(ClusterExecutor):
         super(CondorExecutor, self).shutdown(wait)
         if os.path.exists(self.logfile):
             os.unlink(self.logfile)
+
 
 def map(executor, func, args, ordered=True):
     """Convenience function to map a function over cluster jobs. Given
