@@ -7,10 +7,12 @@ import traceback
 INFILE_FMT = 'cfut.in.%s.pickle'
 OUTFILE_FMT = 'cfut.out.%s.pickle'
 
+
 def format_remote_exc():
     typ, value, tb = sys.exc_info()
     tb = tb.tb_next  # Remove root call to worker().
     return ''.join(traceback.format_exception(typ, value, tb))
+
 
 def worker(workerid):
     """Called to execute a job on a remote host."""
